@@ -1,0 +1,36 @@
+import TextComponent, { TextType } from "@/components/text";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import { router } from "expo-router";
+import React from "react";
+import { Pressable, StyleSheet, View } from "react-native";
+
+export default function HomeScreen() {
+  const backgroundColor = useThemeColor({}, "background");
+
+  return (
+    <View style={[styles.container, { backgroundColor }]}>
+      <TextComponent type={TextType.headingLarge}>HOME</TextComponent>
+
+      <Pressable style={styles.button} onPress={() => router.back()}>
+        <TextComponent type={TextType.textMediumSemiBold}>
+          Voltar para o Login
+        </TextComponent>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 20,
+  },
+  button: {
+    backgroundColor: "#0a7ea4",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+});
