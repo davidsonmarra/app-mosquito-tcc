@@ -1,24 +1,26 @@
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View, ViewStyle } from "react-native";
 
 interface FloatingActionButtonProps {
   onPress: () => void;
   icon?: keyof typeof MaterialIcons.glyphMap;
   size?: number;
+  style?: ViewStyle;
 }
 
 export default function FloatingActionButton({
   onPress,
   icon = "camera-alt",
   size = 24,
+  style,
 }: FloatingActionButtonProps) {
   const backgroundColor = useThemeColor({}, "tint");
 
   return (
     <Pressable
-      style={[styles.fab, { backgroundColor }]}
+      style={[styles.fab, { backgroundColor }, style]}
       onPress={onPress}
       android_ripple={{ color: "rgba(255, 255, 255, 0.2)" }}
     >

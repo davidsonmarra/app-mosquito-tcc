@@ -22,9 +22,11 @@ export default function CampaignList({
   const textColor = useThemeColor({}, "text");
 
   const handleCampaignPress = (campaign: Campaign) => {
-    // Aqui você pode navegar para uma tela de detalhes da campanha
-    // Por enquanto, vamos navegar para a câmera
-    router.push("/camera");
+    // Navegar para a tela de detalhes da campanha
+    router.push({
+      pathname: "/campaign-detail" as any,
+      params: { campaignId: campaign.id.toString() },
+    });
   };
 
   // Separar primeira campanha das demais
