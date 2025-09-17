@@ -2,15 +2,10 @@ import TextComponent, { TextType } from "@/components/text";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React, { useState } from "react";
 import { StyleSheet, TextInput, TextInputProps, View } from "react-native";
+import { InputMask } from "./types";
 import { formatText, unformatText } from "./utils";
 
-export enum InputMask {
-  default = "default",
-  birthdate = "birthdate",
-  document = "document",
-  phone = "phone",
-  currency = "currency",
-}
+export { InputMask };
 
 export interface InputComponentProps extends TextInputProps {
   label?: string;

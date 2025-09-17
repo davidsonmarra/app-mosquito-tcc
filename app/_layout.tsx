@@ -25,6 +25,10 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="register-personal" />
+        <Stack.Screen name="register-address" />
+        <Stack.Screen name="register-review" />
+        <Stack.Screen name="home" />
         <Stack.Screen
           name="camera"
           options={{

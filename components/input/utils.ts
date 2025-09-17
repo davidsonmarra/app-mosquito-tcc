@@ -1,4 +1,4 @@
-import { InputMask } from "./index";
+import { InputMask } from "./types";
 
 export const formatText = (
   text?: string,
