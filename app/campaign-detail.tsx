@@ -60,8 +60,11 @@ export default function CampaignDetailScreen() {
   };
 
   const handleResultPress = (resultId: number) => {
-    // TODO: Implementar navegação para detalhes do resultado
-    Alert.alert("Detalhes", `Visualizar resultado ${resultId}`);
+    // Navegar para a tela de detalhes da análise
+    router.push({
+      pathname: "/analysis-detail" as any,
+      params: { analysisId: resultId.toString() },
+    });
   };
 
   if (loading) {
@@ -91,7 +94,7 @@ export default function CampaignDetailScreen() {
   }
 
   const unreadResults = campaign.results.filter(
-    (result) => result.status === "visualized" && !result.feedback.like
+    (result) => result.status === "visualized" && result.feedback.like === null
   );
 
   return (

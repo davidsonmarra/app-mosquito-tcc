@@ -59,7 +59,8 @@ export default function CampaignResultCard({
     });
   };
 
-  const isUnread = result.status === "visualized" && !result.feedback.like;
+  const isUnread =
+    result.status === "visualized" && result.feedback.like === null;
 
   return (
     <Pressable

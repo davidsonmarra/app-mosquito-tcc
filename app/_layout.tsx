@@ -30,6 +30,7 @@ export default function RootLayout() {
         <Stack.Screen name="register-review" />
         <Stack.Screen name="home" />
         <Stack.Screen name="campaign-detail" />
+        <Stack.Screen name="analysis-detail" />
         <Stack.Screen
           name="camera"
           options={{

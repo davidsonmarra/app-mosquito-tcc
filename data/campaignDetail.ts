@@ -44,8 +44,8 @@ export const mockCampaignDetailData: CampaignDetail = {
         "https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=300&h=200&fit=crop&crop=center",
       type: "propriedade",
       feedback: {
-        like: false,
-        comment: "Área privada. Não é possível intervir.",
+        like: null, // Usuário ainda não avaliou
+        comment: null, // Usuário ainda não comentou
       },
       status: "finished",
       created_at: 1704153600000, // 2 Jan 2024
@@ -57,8 +57,8 @@ export const mockCampaignDetailData: CampaignDetail = {
       resultImage: "",
       type: "terreno",
       feedback: {
-        like: false,
-        comment: "",
+        like: false, // Usuário avaliou negativamente
+        comment: null, // Usuário ainda não comentou
       },
       status: "processing",
       created_at: 1704240000000, // 3 Jan 2024
@@ -71,7 +71,7 @@ export const mockCampaignDetailData: CampaignDetail = {
       type: "propriedade",
       feedback: {
         like: false,
-        comment: "",
+        comment: null, // Usuário ainda não comentou
       },
       status: "failed",
       created_at: 1704326400000, // 4 Jan 2024
