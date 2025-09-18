@@ -28,7 +28,7 @@ export default function RootLayout() {
         <Stack.Screen name="register-personal" />
         <Stack.Screen name="register-address" />
         <Stack.Screen name="register-review" />
-        <Stack.Screen name="home" />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="campaign-detail" />
         <Stack.Screen name="analysis-detail" />
         <Stack.Screen

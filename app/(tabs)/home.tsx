@@ -72,10 +72,6 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
       <View style={styles.header}>
-        <TextComponent type={TextType.headingLarge} style={styles.title}>
-          Detector de Focos da Dengue
-        </TextComponent>
-
         <Pressable style={[styles.logoutButton]} onPress={handleLogout}>
           <MaterialIcons name="logout" size={24} color="#fff" />
           <TextComponent
@@ -110,15 +106,12 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 8,
     marginTop: 8,
-  },
-  title: {
-    flex: 1,
   },
   logoutButton: {
     flexDirection: "row",
