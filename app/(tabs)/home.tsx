@@ -14,10 +14,6 @@ export default function HomeScreen() {
   const textColor = useThemeColor({}, "text");
   const { campaigns, loading, error, refreshCampaigns } = useCampaigns();
 
-  const handleLogout = () => {
-    router.back();
-  };
-
   const handleTakePhoto = () => {
     router.push("/camera");
   };
@@ -71,19 +67,6 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <View style={styles.header}>
-        <Pressable style={[styles.logoutButton]} onPress={handleLogout}>
-          <MaterialIcons name="logout" size={24} color="#fff" />
-          <TextComponent
-            type={TextType.textMediumSemiBold}
-            darkColor="#fff"
-            lightColor="#fff"
-          >
-            Sair
-          </TextComponent>
-        </Pressable>
-      </View>
-
       <CampaignList
         campaigns={campaigns}
         onRefresh={refreshCampaigns}
@@ -103,24 +86,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 16,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-    marginTop: 8,
-  },
-  logoutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ef4444",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
   },
   loadingText: {
     marginTop: 16,
