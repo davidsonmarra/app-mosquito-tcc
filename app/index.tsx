@@ -1,17 +1,45 @@
 import InputComponent from "@/components/input";
 import TextComponent, { TextType } from "@/components/text";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { UserService } from "@/services/user";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  View,
+} from "react-native";
 
 export default function LoginScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = () => {
-    router.push("/(tabs)/home");
+  const handleLogin = async () => {
+    // Validação básica
+    if (!email || !password) {
+      setError("Por favor, preencha todos os campos");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      await UserService.login(email, password);
+      router.push("/(tabs)/home");
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro ao fazer login";
+      setError(errorMessage);
+      Alert.alert("Erro", errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,11 +63,35 @@ export default function LoginScreen() {
           onChangeText={setPassword}
           secureTextEntry
           autoCapitalize="none"
+          textContentType="none"
+          autoComplete="off"
+          passwordRules=""
         />
       </View>
 
-      <Pressable style={styles.button} onPress={handleLogin}>
-        <TextComponent type={TextType.textMediumSemiBold}>Entrar</TextComponent>
+      {error ? (
+        <View style={styles.errorContainer}>
+          <TextComponent
+            type={TextType.textSmallRegular}
+            style={styles.errorText}
+          >
+            {error}
+          </TextComponent>
+        </View>
+      ) : null}
+
+      <Pressable
+        style={[styles.button, loading && styles.buttonDisabled]}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <TextComponent type={TextType.textMediumSemiBold}>
+            Entrar
+          </TextComponent>
+        )}
       </Pressable>
 
       <View style={styles.divider}>
@@ -107,5 +159,18 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: "center",
     width: "100%",
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  errorContainer: {
+    backgroundColor: "#ffebee",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+    width: "100%",
+  },
+  errorText: {
+    color: "#c62828",
   },
 });

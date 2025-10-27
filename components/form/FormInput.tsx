@@ -1,9 +1,9 @@
 import TextComponent, { TextType } from "@/components/text";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, TextInputProps, View } from "react-native";
 
-interface FormInputProps {
+interface FormInputProps extends TextInputProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;

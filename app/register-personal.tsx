@@ -181,6 +181,9 @@ export default function RegisterPersonalScreen() {
               }
             }}
             secureTextEntry
+            textContentType="none"
+            autoComplete="off"
+            passwordRules=""
             error={errors.password}
           />
 
@@ -195,6 +198,9 @@ export default function RegisterPersonalScreen() {
               }
             }}
             secureTextEntry
+            textContentType="none"
+            autoComplete="off"
+            passwordRules=""
             error={errors.confirmPassword}
           />
 

@@ -4,6 +4,7 @@ export interface Address {
   number: number;
   neighborhood: string;
   complement?: string;
+  city: string;
   lat: number;
   lng: number;
 }

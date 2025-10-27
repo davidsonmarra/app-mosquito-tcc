@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import TextComponent, { TextType } from "@/components/text";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { UserService } from "@/services/user";
 import { User } from "@/types/User";
 
 interface PersonalData {
@@ -91,10 +92,18 @@ export default function RegisterReviewScreen() {
           number: parseInt(data.addressData.number),
           neighborhood: data.addressData.neighborhood,
           complement: data.addressData.complement || undefined,
+          city: data.addressData.city,
           lat: data.addressData.lat,
           lng: data.addressData.lng,
         },
       };
+
+      // Chamar o UserService para registrar
+      const result = await UserService.registerUser(userData);
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
 
       // Print do objeto final completo
       console.log("=== DADOS FINAIS DO CADASTRO ===");
@@ -109,12 +118,10 @@ export default function RegisterReviewScreen() {
       console.log(JSON.stringify(userData, null, 2));
       console.log("================================");
 
-      // Simular delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      // Mostrar alerta de sucesso e redirecionar
       Alert.alert(
         "Cadastro Realizado!",
-        "Dados salvos com sucesso! Verifique o console para ver os dados completos.",
+        "Usuário cadastrado com sucesso! Você já pode fazer login.",
         [
           {
             text: "OK",
@@ -124,7 +131,11 @@ export default function RegisterReviewScreen() {
       );
     } catch (error) {
       console.error("Erro durante o cadastro:", error);
-      Alert.alert("Erro", "Ocorreu um erro durante o cadastro.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Ocorreu um erro durante o cadastro.";
+      Alert.alert("Erro", errorMessage);
     } finally {
       setLoading(false);
     }

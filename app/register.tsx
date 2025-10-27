@@ -229,6 +229,9 @@ export default function RegisterScreen() {
             onChangeText={(text) => updateFormData("password", text)}
             placeholder="Mínimo 6 caracteres"
             secureTextEntry
+            textContentType="none"
+            autoComplete="off"
+            passwordRules=""
             error={errors.password}
           />
 
@@ -238,6 +241,9 @@ export default function RegisterScreen() {
             onChangeText={(text) => updateFormData("confirmPassword", text)}
             placeholder="Digite a senha novamente"
             secureTextEntry
+            textContentType="none"
+            autoComplete="off"
+            passwordRules=""
             error={errors.confirmPassword}
           />
 

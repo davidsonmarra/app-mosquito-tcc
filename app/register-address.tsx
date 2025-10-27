@@ -22,6 +22,7 @@ interface AddressData {
   number: string;
   neighborhood: string;
   complement: string;
+  city: string;
   lat: number;
   lng: number;
 }
@@ -43,6 +44,7 @@ export default function RegisterAddressScreen() {
     number: "",
     neighborhood: "",
     complement: "",
+    city: "",
     lat: 0,
     lng: 0,
   });
@@ -225,6 +227,7 @@ export default function RegisterAddressScreen() {
                 ...prev,
                 street: address.street,
                 neighborhood: address.neighborhood,
+                city: address.city,
               }));
 
               console.log(
@@ -260,6 +263,13 @@ export default function RegisterAddressScreen() {
               setFormData({ ...formData, neighborhood: text })
             }
             error={errors.neighborhood}
+          />
+
+          <FormInput
+            label="Cidade"
+            placeholder="Digite a cidade"
+            value={formData.city}
+            onChangeText={(text) => setFormData({ ...formData, city: text })}
           />
 
           <FormInput
