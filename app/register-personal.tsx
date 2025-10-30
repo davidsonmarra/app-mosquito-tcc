@@ -167,6 +167,7 @@ export default function RegisterPersonalScreen() {
               }
             }}
             keyboardType="email-address"
+            autoCapitalize="none"
             error={errors.email}
           />
 

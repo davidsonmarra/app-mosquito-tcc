@@ -25,6 +25,7 @@ export default function FormInput({
   error,
   multiline = false,
   numberOfLines = 1,
+  ...rest
 }: FormInputProps) {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
@@ -53,6 +54,7 @@ export default function FormInput({
         keyboardType={keyboardType}
         multiline={multiline}
         numberOfLines={numberOfLines}
+        {...rest}
       />
       {error && (
         <TextComponent type={TextType.textSmallRegular} style={styles.error}>

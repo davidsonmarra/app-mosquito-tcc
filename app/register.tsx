@@ -34,6 +34,7 @@ export default function RegisterScreen() {
     street: "",
     number: "",
     neighborhood: "",
+    city: "",
     complement: "",
   });
 
@@ -54,6 +55,7 @@ export default function RegisterScreen() {
       ...prev,
       street: address.street,
       neighborhood: address.neighborhood,
+      city: address.city,
     }));
   };
 
@@ -131,6 +133,10 @@ export default function RegisterScreen() {
       newErrors.neighborhood = "Bairro é obrigatório";
     }
 
+    if (!formData.city.trim()) {
+      newErrors.city = "Cidade é obrigatória";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -154,6 +160,7 @@ export default function RegisterScreen() {
         password: formData.password,
         phone: formData.phone.replace(/\D/g, ""),
         address: {
+          city: formData.city.trim(),
           cep: formData.cep.replace(/\D/g, ""),
           street: formData.street.trim(),
           number: parseInt(formData.number),
@@ -220,6 +227,7 @@ export default function RegisterScreen() {
             onChangeText={(text) => updateFormData("email", text)}
             placeholder="seu@email.com"
             keyboardType="email-address"
+            autoCapitalize="none"
             error={errors.email}
           />
 
@@ -293,6 +301,14 @@ export default function RegisterScreen() {
             onChangeText={(text) => updateFormData("neighborhood", text)}
             placeholder="Nome do bairro"
             error={errors.neighborhood}
+          />
+
+          <FormInput
+            label="Cidade"
+            value={formData.city}
+            onChangeText={(text) => updateFormData("city", text)}
+            placeholder="Nome da cidade"
+            error={errors.city}
           />
 
           <FormInput
