@@ -1,4 +1,5 @@
-import { CampaignDetail } from "../types/Campaign";
+import { CampaignApiResponse, CampaignService } from "../services/campaign";
+import { CampaignDetail, CampaignResult } from "../types/Campaign";
 
 export const mockCampaignDetailData: CampaignDetail = {
   id: 1,
@@ -79,13 +80,73 @@ export const mockCampaignDetailData: CampaignDetail = {
   ],
 };
 
+/**
+ * Mapeia a resposta da API para o formato CampaignDetail esperado pela UI
+ */
+function mapApiCampaignDetailToCampaignDetail(
+  apiCampaign: CampaignApiResponse
+): CampaignDetail {
+  // Determinar se a campanha está ativa baseado na data de término
+  const finishDate = new Date(apiCampaign.finish_at);
+  const now = new Date();
+  const isActive = finishDate > now;
+
+  // Contar resultados não visualizados (não "visualized")
+  const resultsNotDisplayed = apiCampaign.results.filter(
+    (result: any) => result.status !== "visualized"
+  ).length;
+
+  // Mapear resultados da API para CampaignResult[]
+  const mappedResults: CampaignResult[] = (apiCampaign.results || []).map(
+    (result: any) => {
+      // Converter created_at de string ISO para timestamp em milissegundos
+      const created_at =
+        result.created_at instanceof Date
+          ? result.created_at.getTime()
+          : typeof result.created_at === "string"
+          ? new Date(result.created_at).getTime()
+          : typeof result.created_at === "number"
+          ? result.created_at
+          : Date.now();
+
+      return {
+        id: result.id,
+        originalImage: result.original_image || result.originalImage || "",
+        resultImage: result.result_image || result.resultImage || "",
+        type: result.type || "terreno",
+        feedback: {
+          like: result.feedback?.like ?? null,
+          comment: result.feedback?.comment ?? null,
+        },
+        status: result.status || "processing",
+        created_at,
+      };
+    }
+  );
+
+  return {
+    id: apiCampaign.id,
+    title: apiCampaign.title,
+    description: apiCampaign.description,
+    isActive,
+    resultsNotDisplayed,
+    campaignInfos: apiCampaign.campaign_infos || [],
+    instructionInfos: apiCampaign.instruction_infos || [],
+    results: mappedResults,
+  };
+}
+
 export const fetchCampaignDetail = async (
   campaignId: number
 ): Promise<CampaignDetail> => {
-  // Simular delay da API
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    // Buscar dados da API
+    const apiCampaign = await CampaignService.getCampaign(campaignId);
 
-  // Por enquanto, retornar sempre os mesmos dados mockados
-  // Em produção, faria uma chamada real para a API
-  return mockCampaignDetailData;
+    // Mapear para o formato esperado
+    return mapApiCampaignDetailToCampaignDetail(apiCampaign);
+  } catch (error) {
+    console.error("Erro ao buscar detalhes da campanha:", error);
+    throw error;
+  }
 };
