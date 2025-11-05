@@ -1,6 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -46,17 +47,39 @@ export default function CampaignDetailScreen() {
     loadCampaignDetail();
   }, [campaignId]);
 
+  // Atualizar quando a tela voltar ao foco (ex: após voltar da câmera)
+  useFocusEffect(
+    useCallback(() => {
+      // Recarregar dados quando a tela voltar ao foco
+      // Usar refreshing ao invés de loading para não mostrar tela de loading
+      if (campaign) {
+        setRefreshing(true);
+      }
+      loadCampaignDetail();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [campaignId])
+  );
+
   const handleRefresh = () => {
     setRefreshing(true);
     loadCampaignDetail();
   };
 
   const handleTakePhoto = () => {
-    // TODO: Implementar navegação para câmera
-    Alert.alert(
-      "Câmera",
-      "Funcionalidade de câmera será implementada em breve!"
-    );
+    const campaignIdNum = Number(campaignId);
+    if (!campaignIdNum || isNaN(campaignIdNum)) {
+      Alert.alert("Erro", "ID da campanha inválido");
+      return;
+    }
+
+    // Navegar para a tela de câmera passando o ID da campanha
+    router.push({
+      pathname: "/camera" as any,
+      params: {
+        campaignId: campaignIdNum.toString(),
+        type: "terreno", // Tipo padrão, pode ser ajustado conforme necessário
+      },
+    });
   };
 
   const handleResultPress = (resultId: number) => {

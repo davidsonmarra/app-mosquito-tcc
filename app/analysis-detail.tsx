@@ -15,9 +15,30 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AnalysisFeedbackSection from "../components/analysis/AnalysisFeedbackSection";
 import AnalysisImageSection from "../components/analysis/AnalysisImageSection";
 import AnalysisInfoSection from "../components/analysis/AnalysisInfoSection";
-import { fetchAnalysisDetail } from "../data/analysisDetail";
 import { useThemeColor } from "../hooks/useThemeColor";
+import AuthService from "../services/auth";
+import { CampaignService } from "../services/campaign";
 import { AnalysisDetail } from "../types/Campaign";
+
+const API_BASE_URL =
+  "https://deteccao-criadouro-api-949210563435.southamerica-east1.run.app";
+
+interface ResultApiResponse {
+  originalImage: string;
+  resultImage: string | null;
+  type: string;
+  status: string;
+  feedback: {
+    like: boolean;
+    comment: string | null;
+  };
+  id: number;
+  campaignId: number;
+  created_at: string;
+  processed_at: string | null;
+  object_count: number | null;
+  userId: number;
+}
 
 export default function AnalysisDetailScreen() {
   const { analysisId } = useLocalSearchParams();
@@ -30,7 +51,72 @@ export default function AnalysisDetailScreen() {
 
   const loadAnalysisDetail = async () => {
     try {
-      const analysisData = await fetchAnalysisDetail(Number(analysisId));
+      const headers = await AuthService.getAuthHeaders();
+      const resultId = Number(analysisId);
+
+      // Buscar resultado por ID
+      const response = await fetch(
+        `${API_BASE_URL}/results/getResult/${resultId}`,
+        {
+          method: "GET",
+          headers: {
+            ...headers,
+            accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Erro na resposta da API:", errorText);
+        throw new Error(
+          `Erro ao buscar resultado: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const resultData: ResultApiResponse = await response.json();
+
+      // Buscar título da campanha se tiver campaignId
+      let campaignTitle = "Campanha";
+      if (resultData.campaignId) {
+        try {
+          const campaign = await CampaignService.getCampaign(
+            resultData.campaignId
+          );
+          campaignTitle = campaign.title;
+        } catch (error) {
+          console.error("Erro ao buscar título da campanha:", error);
+        }
+      }
+
+      // Converter data ISO para timestamp
+      const created_at = new Date(resultData.created_at).getTime();
+
+      // Mapear para AnalysisDetail
+      const analysisData: AnalysisDetail = {
+        id: resultData.id,
+        originalImage: resultData.originalImage,
+        resultImage: resultData.resultImage || "",
+        type: resultData.type as "terreno" | "propriedade",
+        feedback: {
+          like: resultData.feedback.like,
+          comment: resultData.feedback.comment,
+        },
+        status: resultData.status as
+          | "visualized"
+          | "finished"
+          | "processing"
+          | "failed",
+        created_at: created_at,
+        campaignId: resultData.campaignId,
+        campaignTitle: campaignTitle,
+        detectedBreedingSites: resultData.object_count || 0,
+        location: {
+          latitude: 0,
+          longitude: 0,
+        },
+      };
+
       setAnalysis(analysisData);
     } catch (error) {
       console.error("Erro ao carregar detalhes da análise:", error);

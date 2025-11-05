@@ -7,10 +7,14 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const backgroundColor = useThemeColor({}, "background");
@@ -43,10 +47,22 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor }]}>
-      <TextComponent type={TextType.headingLarge}>Faça seu Login</TextComponent>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor }]}>
+      <KeyboardAvoidingView
+        style={[styles.keyboardAvoidingView, { backgroundColor }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[styles.scrollContent, { backgroundColor }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <TextComponent type={TextType.headingLarge}>Faça seu Login</TextComponent>
 
-      <View style={styles.form}>
+          <View style={styles.form}>
         <InputComponent
           label="Email"
           placeholder="Digite seu email"
@@ -113,16 +129,30 @@ export default function LoginScreen() {
           Criar nova conta
         </TextComponent>
       </Pressable>
-    </View>
+        </View>
+      </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    alignItems: "center",
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: "center",
     padding: 20,
+    minHeight: "100%",
+  },
+  container: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
   },
   form: {
     width: "100%",

@@ -1,7 +1,8 @@
 import TextComponent, { TextType } from "@/components/text";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import React from "react";
-import { StyleSheet, TextInput, TextInputProps, View } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { Pressable, StyleSheet, TextInput, TextInputProps, View } from "react-native";
 
 interface FormInputProps extends TextInputProps {
   label: string;
@@ -13,6 +14,7 @@ interface FormInputProps extends TextInputProps {
   error?: string;
   multiline?: boolean;
   numberOfLines?: number;
+  showPasswordToggle?: boolean;
 }
 
 export default function FormInput({
@@ -25,37 +27,56 @@ export default function FormInput({
   error,
   multiline = false,
   numberOfLines = 1,
+  showPasswordToggle = false,
   ...rest
 }: FormInputProps) {
+  const [showPassword, setShowPassword] = useState(false);
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const borderColor = error ? "#ef4444" : useThemeColor({}, "icon");
+
+  const isPasswordVisible = showPasswordToggle ? !showPassword : secureTextEntry;
 
   return (
     <View style={styles.container}>
       <TextComponent type={TextType.textMediumSemiBold} style={styles.label}>
         {label}
       </TextComponent>
-      <TextInput
-        style={[
-          styles.input,
-          {
-            backgroundColor,
-            color: textColor,
-            borderColor,
-          },
-          multiline && styles.multilineInput,
-        ]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={textColor + "80"}
-        secureTextEntry={secureTextEntry}
-        keyboardType={keyboardType}
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-        {...rest}
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor,
+              color: textColor,
+              borderColor,
+            },
+            multiline && styles.multilineInput,
+            showPasswordToggle && styles.inputWithIcon,
+          ]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={textColor + "80"}
+          secureTextEntry={isPasswordVisible}
+          keyboardType={keyboardType}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          {...rest}
+        />
+        {showPasswordToggle && (
+          <Pressable
+            style={styles.iconButton}
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            <MaterialIcons
+              name={showPassword ? "visibility" : "visibility-off"}
+              size={24}
+              color={textColor + "80"}
+            />
+          </Pressable>
+        )}
+      </View>
       {error && (
         <TextComponent type={TextType.textSmallRegular} style={styles.error}>
           {error}
@@ -72,6 +93,9 @@ const styles = StyleSheet.create({
   label: {
     marginBottom: 8,
   },
+  inputContainer: {
+    position: "relative",
+  },
   input: {
     borderWidth: 1,
     borderRadius: 8,
@@ -79,6 +103,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     minHeight: 48,
+  },
+  inputWithIcon: {
+    paddingRight: 48,
+  },
+  iconButton: {
+    position: "absolute",
+    right: 12,
+    top: 12,
+    padding: 4,
   },
   multilineInput: {
     minHeight: 80,

@@ -1,5 +1,6 @@
-import { fetchUserAnalysesMock } from "@/services/analysis";
+import { fetchUserAnalyses } from "@/services/analysis";
 import { UserAnalysis } from "@/types/Analysis";
+import AuthService from "@/services/auth";
 import { useEffect, useState } from "react";
 
 export const useUserAnalyses = () => {
@@ -11,7 +12,19 @@ export const useUserAnalyses = () => {
   const loadAnalyses = async () => {
     try {
       setError(null);
-      const data = await fetchUserAnalysesMock();
+      
+      // Obter userId do usuário autenticado
+      const user = await AuthService.getUser();
+      if (!user || !user.id) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      const userId = parseInt(user.id, 10);
+      if (isNaN(userId)) {
+        throw new Error("ID do usuário inválido");
+      }
+
+      const data = await fetchUserAnalyses(userId);
       setAnalyses(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro desconhecido");

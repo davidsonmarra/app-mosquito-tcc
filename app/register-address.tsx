@@ -1,8 +1,11 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -38,6 +41,7 @@ export default function RegisterAddressScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const [loading, setLoading] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [formData, setFormData] = useState<AddressData>({
     cep: "",
     street: "",
@@ -188,12 +192,39 @@ export default function RegisterAddressScreen() {
     router.back();
   };
 
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={handleBack}>
             <MaterialIcons name="arrow-back" size={24} color={textColor} />
@@ -281,46 +312,58 @@ export default function RegisterAddressScreen() {
             }
           />
         </View>
+        </ScrollView>
+        
+        {/* Botões fixos na parte inferior */}
+        <View
+          style={[
+            styles.fixedButtonContainer,
+            {
+              backgroundColor,
+              bottom: keyboardHeight > 0 ? keyboardHeight : 0,
+            },
+          ]}
+        >
+          <View style={styles.buttonContainer}>
+            <Pressable
+              style={[styles.backButtonAction, { borderColor: textColor + "30" }]}
+              onPress={handleBack}
+            >
+              <MaterialIcons name="arrow-back" size={20} color={textColor} />
+              <TextComponent type={TextType.textMediumSemiBold}>
+                Voltar
+              </TextComponent>
+            </Pressable>
 
-        <View style={styles.buttonContainer}>
-          <Pressable
-            style={[styles.backButtonAction, { borderColor: textColor + "30" }]}
-            onPress={handleBack}
-          >
-            <MaterialIcons name="arrow-back" size={20} color={textColor} />
-            <TextComponent type={TextType.textMediumSemiBold}>
-              Voltar
-            </TextComponent>
-          </Pressable>
-
-          <Pressable
-            style={[
-              styles.nextButton,
-              {
-                backgroundColor: isFormValid() ? textColor : textColor + "50",
-                opacity: isFormValid() ? 1 : 0.6,
-              },
-            ]}
-            onPress={handleNext}
-            disabled={loading || !isFormValid()}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <>
-                <TextComponent
-                  type={TextType.textMediumSemiBold}
-                  darkColor="#fff"
-                  lightColor="#fff"
-                >
-                  Continuar
-                </TextComponent>
-                <MaterialIcons name="arrow-forward" size={20} color="#fff" />
-              </>
-            )}
-          </Pressable>
+            <Pressable
+              style={[
+                styles.nextButton,
+                {
+                  backgroundColor: isFormValid() ? textColor : textColor + "50",
+                  opacity: isFormValid() ? 1 : 0.6,
+                },
+              ]}
+              onPress={handleNext}
+              disabled={loading || !isFormValid()}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <TextComponent
+                    type={TextType.textMediumSemiBold}
+                    darkColor="#fff"
+                    lightColor="#fff"
+                  >
+                    Continuar
+                  </TextComponent>
+                  <MaterialIcons name="arrow-forward" size={20} color="#fff" />
+                </>
+              )}
+            </Pressable>
+          </View>
         </View>
-      </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -344,8 +387,35 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     opacity: 0.7,
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 120, // Espaço para os botões fixos
+  },
+  fixedButtonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E5E5",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 10,
   },
   header: {
     flexDirection: "row",
@@ -408,9 +478,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    paddingHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 32,
     gap: 12,
   },
   backButtonAction: {

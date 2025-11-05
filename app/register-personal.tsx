@@ -1,8 +1,11 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -34,6 +37,7 @@ export default function RegisterPersonalScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const [loading, setLoading] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [formData, setFormData] = useState<PersonalData>({
     name: "",
     email: "",
@@ -42,6 +46,26 @@ export default function RegisterPersonalScreen() {
     phone: "",
   });
   const [errors, setErrors] = useState<Errors>({});
+
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Errors = {};
@@ -70,6 +94,11 @@ export default function RegisterPersonalScreen() {
 
     if (!formData.phone.trim()) {
       newErrors.phone = "Telefone é obrigatório";
+    } else {
+      const phoneDigits = formData.phone.replace(/\D/g, "");
+      if (phoneDigits.length < 10) {
+        newErrors.phone = "Telefone deve ter pelo menos 10 dígitos";
+      }
     }
 
     setErrors(newErrors);
@@ -77,13 +106,15 @@ export default function RegisterPersonalScreen() {
   };
 
   const isFormValid = (): boolean => {
+    const phoneDigits = formData.phone.replace(/\D/g, "");
     return (
       formData.name.trim() !== "" &&
       formData.email.trim() !== "" &&
       /\S+@\S+\.\S+/.test(formData.email) &&
       formData.password.length >= 6 &&
       formData.confirmPassword === formData.password &&
-      formData.phone.trim() !== ""
+      formData.phone.trim() !== "" &&
+      phoneDigits.length >= 10
     );
   };
 
@@ -115,10 +146,17 @@ export default function RegisterPersonalScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
             <MaterialIcons name="arrow-back" size={24} color={textColor} />
@@ -140,6 +178,147 @@ export default function RegisterPersonalScreen() {
           >
             Etapa 1 de 3
           </TextComponent>
+        </View>
+
+        {/* Checklist de Validação */}
+        <View style={[styles.checklistContainer, { backgroundColor }]}>
+          <TextComponent
+            type={TextType.textMediumSemiBold}
+            style={styles.checklistTitle}
+          >
+            Complete os campos abaixo:
+          </TextComponent>
+          <View style={styles.checklist}>
+            <View style={styles.checklistItem}>
+              <MaterialIcons
+                name={
+                  formData.name.trim() !== ""
+                    ? "check-circle"
+                    : "radio-button-unchecked"
+                }
+                size={20}
+                color={
+                  formData.name.trim() !== "" ? "#4CAF50" : textColor + "80"
+                }
+              />
+              <TextComponent
+                type={TextType.textSmallRegular}
+                style={[
+                  styles.checklistText,
+                  {
+                    color:
+                      formData.name.trim() !== ""
+                        ? textColor
+                        : textColor + "80",
+                  },
+                ]}
+              >
+                Nome
+              </TextComponent>
+            </View>
+
+            <View style={styles.checklistItem}>
+              <MaterialIcons
+                name={
+                  formData.email.trim() !== "" &&
+                  /\S+@\S+\.\S+/.test(formData.email)
+                    ? "check-circle"
+                    : "radio-button-unchecked"
+                }
+                size={20}
+                color={
+                  formData.email.trim() !== "" &&
+                  /\S+@\S+\.\S+/.test(formData.email)
+                    ? "#4CAF50"
+                    : textColor + "80"
+                }
+              />
+              <TextComponent
+                type={TextType.textSmallRegular}
+                style={[
+                  styles.checklistText,
+                  {
+                    color:
+                      formData.email.trim() !== "" &&
+                      /\S+@\S+\.\S+/.test(formData.email)
+                        ? textColor
+                        : textColor + "80",
+                  },
+                ]}
+              >
+                Email
+              </TextComponent>
+            </View>
+
+            <View style={styles.checklistItem}>
+              <MaterialIcons
+                name={
+                  formData.password.length >= 6 &&
+                  formData.confirmPassword === formData.password &&
+                  formData.password !== ""
+                    ? "check-circle"
+                    : "radio-button-unchecked"
+                }
+                size={20}
+                color={
+                  formData.password.length >= 6 &&
+                  formData.confirmPassword === formData.password &&
+                  formData.password !== ""
+                    ? "#4CAF50"
+                    : textColor + "80"
+                }
+              />
+              <TextComponent
+                type={TextType.textSmallRegular}
+                style={[
+                  styles.checklistText,
+                  {
+                    color:
+                      formData.password.length >= 6 &&
+                      formData.confirmPassword === formData.password &&
+                      formData.password !== ""
+                        ? textColor
+                        : textColor + "80",
+                  },
+                ]}
+              >
+                Senhas iguais de pelo menos 6 dígitos
+              </TextComponent>
+            </View>
+
+            <View style={styles.checklistItem}>
+              <MaterialIcons
+                name={
+                  formData.phone.trim() !== "" &&
+                  formData.phone.replace(/\D/g, "").length >= 10
+                    ? "check-circle"
+                    : "radio-button-unchecked"
+                }
+                size={20}
+                color={
+                  formData.phone.trim() !== "" &&
+                  formData.phone.replace(/\D/g, "").length >= 10
+                    ? "#4CAF50"
+                    : textColor + "80"
+                }
+              />
+              <TextComponent
+                type={TextType.textSmallRegular}
+                style={[
+                  styles.checklistText,
+                  {
+                    color:
+                      formData.phone.trim() !== "" &&
+                      formData.phone.replace(/\D/g, "").length >= 10
+                        ? textColor
+                        : textColor + "80",
+                  },
+                ]}
+              >
+                Telefone válido
+              </TextComponent>
+            </View>
+          </View>
         </View>
 
         <View style={styles.form}>
@@ -182,6 +361,7 @@ export default function RegisterPersonalScreen() {
               }
             }}
             secureTextEntry
+            showPasswordToggle
             textContentType="none"
             autoComplete="off"
             passwordRules=""
@@ -199,6 +379,7 @@ export default function RegisterPersonalScreen() {
               }
             }}
             secureTextEntry
+            showPasswordToggle
             textContentType="none"
             autoComplete="off"
             passwordRules=""
@@ -219,34 +400,46 @@ export default function RegisterPersonalScreen() {
             error={errors.phone}
           />
         </View>
-
-        <Pressable
+        </ScrollView>
+        
+        {/* Botão fixo na parte inferior */}
+        <View
           style={[
-            styles.nextButton,
+            styles.buttonContainer,
             {
-              backgroundColor: isFormValid() ? textColor : textColor + "50",
-              opacity: isFormValid() ? 1 : 0.6,
+              backgroundColor,
+              bottom: keyboardHeight > 0 ? keyboardHeight : 0,
             },
           ]}
-          onPress={handleNext}
-          disabled={loading || !isFormValid()}
         >
-          {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <TextComponent
-                type={TextType.textMediumSemiBold}
-                darkColor="#fff"
-                lightColor="#fff"
-              >
-                Continuar
-              </TextComponent>
-              <MaterialIcons name="arrow-forward" size={20} color="#fff" />
-            </>
-          )}
-        </Pressable>
-      </ScrollView>
+          <Pressable
+            style={[
+              styles.nextButton,
+              {
+                backgroundColor: isFormValid() ? textColor : textColor + "50",
+                opacity: isFormValid() ? 1 : 0.6,
+              },
+            ]}
+            onPress={handleNext}
+            disabled={loading || !isFormValid()}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <TextComponent
+                  type={TextType.textMediumSemiBold}
+                  darkColor="#fff"
+                  lightColor="#fff"
+                >
+                  Continuar
+                </TextComponent>
+                <MaterialIcons name="arrow-forward" size={20} color="#fff" />
+              </>
+            )}
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -255,8 +448,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 100, // Espaço para o botão fixo
+  },
+  buttonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E5E5",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 10,
   },
   header: {
     flexDirection: "row",
@@ -298,6 +518,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 16,
   },
+  checklistContainer: {
+    marginHorizontal: 16,
+    marginBottom: 24,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E5E5",
+  },
+  checklistTitle: {
+    marginBottom: 12,
+  },
+  checklist: {
+    gap: 12,
+  },
+  checklistItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  checklistText: {
+    flex: 1,
+  },
   nextButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -305,9 +547,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 8,
-    marginHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 32,
     gap: 8,
   },
 });

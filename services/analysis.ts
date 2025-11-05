@@ -1,24 +1,99 @@
 import { UserAnalysesResponse, UserAnalysis } from "@/types/Analysis";
+import AuthService from "./auth";
+import { CampaignService } from "./campaign";
 
-const API_BASE_URL = "https://api.mosquitocamera.com";
+const API_BASE_URL =
+  "https://deteccao-criadouro-api-949210563435.southamerica-east1.run.app";
 
-export const fetchUserAnalyses = async (): Promise<UserAnalysis[]> => {
+interface ResultApiResponse {
+  originalImage: string;
+  resultImage: string | null;
+  type: string;
+  status: string;
+  feedback: {
+    like: boolean;
+    comment: string | null;
+  };
+  id: number;
+  campaignId: number | null;
+  created_at: string;
+  processed_at: string | null;
+  object_count: number | null;
+  userId: number;
+}
+
+export const fetchUserAnalyses = async (userId: number): Promise<UserAnalysis[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/user/analyses`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        // Aqui você adicionaria o token de autenticação
-        // "Authorization": `Bearer ${token}`,
-      },
-    });
+    const headers = await AuthService.getAuthHeaders();
+
+    const response = await fetch(
+      `${API_BASE_URL}/results/getResultByUser/${userId}`,
+      {
+        method: "GET",
+        headers: {
+          ...headers,
+          accept: "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status}`);
+      const errorText = await response.text();
+      console.error("Erro na resposta da API:", errorText);
+      throw new Error(
+        `Erro ao buscar análises: ${response.status} ${response.statusText}`
+      );
     }
 
-    const data: UserAnalysesResponse = await response.json();
-    return data.results;
+    const results: ResultApiResponse[] = await response.json();
+
+    // Mapear resultados e buscar títulos das campanhas quando necessário
+    const mappedAnalyses = await Promise.all(
+      results.map(async (result) => {
+        // Converter data ISO para timestamp
+        const created_at = new Date(result.created_at).getTime();
+
+        // Buscar informações da campanha se houver campaignId
+        let campaignInfo: UserAnalysis["campaign"] | undefined;
+        if (result.campaignId) {
+          try {
+            const campaign = await CampaignService.getCampaign(result.campaignId);
+            campaignInfo = {
+              id: campaign.id,
+              title: campaign.title,
+              description: campaign.description,
+            };
+          } catch (error) {
+            console.error(
+              `Erro ao buscar campanha ${result.campaignId}:`,
+              error
+            );
+            // Continua sem a informação da campanha
+          }
+        }
+
+        const analysis: UserAnalysis = {
+          id: result.id,
+          originalImage: result.originalImage,
+          resultImage: result.resultImage || "",
+          type: result.type as "terreno" | "propriedade",
+          status: result.status as "visualized" | "finished" | "processing" | "failed",
+          created_at: created_at,
+          ...(campaignInfo && { campaign: campaignInfo }),
+          // Incluir feedback apenas se houver comment ou se like for true/false (avaliado)
+          ...(result.feedback.comment || (result.feedback.like !== null && result.feedback.like !== undefined) ? {
+            feedback: {
+              like: result.feedback.like,
+              comment: result.feedback.comment || "",
+            },
+          } : {}),
+        };
+
+        return analysis;
+      })
+    );
+
+    return mappedAnalyses;
   } catch (error) {
     console.error("Erro ao buscar análises do usuário:", error);
     throw error;
