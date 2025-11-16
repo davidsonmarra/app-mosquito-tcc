@@ -17,6 +17,7 @@ interface CEPInputProps {
   onAddressFound: (address: ViaCEPAddress) => void;
   streetNumber?: string;
   error?: string;
+  onFocus?: () => void;
 }
 
 export default function CEPInput({
@@ -25,6 +26,7 @@ export default function CEPInput({
   onAddressFound,
   streetNumber,
   error,
+  onFocus,
 }: CEPInputProps) {
   const [loading, setLoading] = useState(false);
   const iconColor = useThemeColor({}, "tint");
@@ -81,6 +83,7 @@ export default function CEPInput({
           ]}
           value={value}
           onChangeText={handleChangeText}
+          onFocus={onFocus}
           placeholder="00000-000"
           placeholderTextColor={textColor + "80"}
           keyboardType="numeric"

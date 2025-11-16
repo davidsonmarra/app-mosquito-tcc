@@ -1,5 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -36,6 +36,13 @@ export default function AnalysisFeedbackSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(feedback.like !== null);
   const [showCommentStep, setShowCommentStep] = useState(false);
+
+  // Sincronizar estado interno quando as props mudarem
+  useEffect(() => {
+    setCurrentLike(feedback.like);
+    setCurrentComment(feedback.comment || "");
+    setIsSubmitted(feedback.like !== null);
+  }, [feedback.like, feedback.comment]);
 
   const handleLikePress = (like: boolean) => {
     if (isSubmitted || isSubmitting) {

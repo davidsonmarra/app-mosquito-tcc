@@ -1,9 +1,8 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -41,7 +40,6 @@ export default function RegisterAddressScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const [loading, setLoading] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [formData, setFormData] = useState<AddressData>({
     cep: "",
     street: "",
@@ -137,14 +135,13 @@ export default function RegisterAddressScreen() {
     setLoading(true);
 
     try {
-      // Buscar coordenadas REAIS do Google Maps antes de continuar
       console.log("🎯 Buscando coordenadas finais antes de continuar...");
 
       const finalCoordinates = await GoogleMapsService.getFinalCoordinates(
         formData.street,
         formData.number,
         formData.neighborhood,
-        "Belo Horizonte", // Seria melhor pegar da resposta do CEP
+        "Belo Horizonte",
         "MG",
         formData.cep
       );
@@ -152,13 +149,11 @@ export default function RegisterAddressScreen() {
       let finalFormData = formData;
 
       if (finalCoordinates) {
-        // Atualizar coordenadas finais
         finalFormData = {
           ...formData,
           lat: finalCoordinates.latitude,
           lng: finalCoordinates.longitude,
         };
-
         console.log("✅ Coordenadas finais obtidas:", finalCoordinates);
       } else {
         console.log(
@@ -166,10 +161,8 @@ export default function RegisterAddressScreen() {
         );
       }
 
-      // Simular delay
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Navegar para tela de revisão com todos os dados
       const allData = {
         personalData: JSON.parse(personalData as string),
         addressData: finalFormData,
@@ -192,175 +185,170 @@ export default function RegisterAddressScreen() {
     router.back();
   };
 
-  useEffect(() => {
-    const keyboardWillShow = Keyboard.addListener(
-      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
-      (e) => {
-        setKeyboardHeight(e.endCoordinates.height);
-      }
-    );
-    const keyboardWillHide = Keyboard.addListener(
-      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
-      () => {
-        setKeyboardHeight(0);
-      }
-    );
-
-    return () => {
-      keyboardWillShow.remove();
-      keyboardWillHide.remove();
-    };
-  }, []);
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
       <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={handleBack}>
-            <MaterialIcons name="arrow-back" size={24} color={textColor} />
-          </Pressable>
-          <TextComponent type={TextType.headingLarge} style={styles.title}>
-            Endereço
-          </TextComponent>
-        </View>
-
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressStep, styles.progressStepCompleted]} />
-            <View style={[styles.progressStep, styles.progressStepActive]} />
-            <View style={styles.progressStep} />
-          </View>
-          <TextComponent
-            type={TextType.textSmallRegular}
-            style={styles.progressText}
+        <View style={styles.content}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
           >
-            Etapa 2 de 3
-          </TextComponent>
-        </View>
-
-        <View style={styles.form}>
-          <CEPInput
-            value={formData.cep}
-            onChangeText={handleCEPChange}
-            streetNumber={formData.number}
-            onAddressFound={(address: ViaCEPAddress) => {
-              setFormData((prev) => ({
-                ...prev,
-                street: address.street,
-                neighborhood: address.neighborhood,
-                city: address.city,
-              }));
-
-              console.log(
-                "✅ Endereço encontrado no ViaCEP (GRATUITO):",
-                address
-              );
-            }}
-            error={errors.cep}
-          />
-
-          <FormInput
-            label="Rua"
-            placeholder="Digite o nome da rua"
-            value={formData.street}
-            onChangeText={(text) => setFormData({ ...formData, street: text })}
-            error={errors.street}
-          />
-
-          <FormInput
-            label="Número"
-            placeholder="Digite o número"
-            value={formData.number}
-            onChangeText={(text) => setFormData({ ...formData, number: text })}
-            keyboardType="numeric"
-            error={errors.number}
-          />
-
-          <FormInput
-            label="Bairro"
-            placeholder="Digite o bairro"
-            value={formData.neighborhood}
-            onChangeText={(text) =>
-              setFormData({ ...formData, neighborhood: text })
-            }
-            error={errors.neighborhood}
-          />
-
-          <FormInput
-            label="Cidade"
-            placeholder="Digite a cidade"
-            value={formData.city}
-            onChangeText={(text) => setFormData({ ...formData, city: text })}
-          />
-
-          <FormInput
-            label="Complemento"
-            placeholder="Apartamento, casa, etc. (opcional)"
-            value={formData.complement}
-            onChangeText={(text) =>
-              setFormData({ ...formData, complement: text })
-            }
-          />
-        </View>
-        </ScrollView>
-        
-        {/* Botões fixos na parte inferior */}
-        <View
-          style={[
-            styles.fixedButtonContainer,
-            {
-              backgroundColor,
-              bottom: keyboardHeight > 0 ? keyboardHeight : 0,
-            },
-          ]}
-        >
-          <View style={styles.buttonContainer}>
-            <Pressable
-              style={[styles.backButtonAction, { borderColor: textColor + "30" }]}
-              onPress={handleBack}
-            >
-              <MaterialIcons name="arrow-back" size={20} color={textColor} />
-              <TextComponent type={TextType.textMediumSemiBold}>
-                Voltar
+            <View style={styles.header}>
+              <Pressable style={styles.backButton} onPress={handleBack}>
+                <MaterialIcons name="arrow-back" size={24} color={textColor} />
+              </Pressable>
+              <TextComponent type={TextType.headingLarge} style={styles.title}>
+                Endereço
               </TextComponent>
-            </Pressable>
+            </View>
 
-            <Pressable
-              style={[
-                styles.nextButton,
-                {
-                  backgroundColor: isFormValid() ? textColor : textColor + "50",
-                  opacity: isFormValid() ? 1 : 0.6,
-                },
-              ]}
-              onPress={handleNext}
-              disabled={loading || !isFormValid()}
-            >
-              {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <>
-                  <TextComponent
-                    type={TextType.textMediumSemiBold}
-                    darkColor="#fff"
-                    lightColor="#fff"
-                  >
-                    Continuar
-                  </TextComponent>
-                  <MaterialIcons name="arrow-forward" size={20} color="#fff" />
-                </>
-              )}
-            </Pressable>
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View
+                  style={[styles.progressStep, styles.progressStepCompleted]}
+                />
+                <View
+                  style={[styles.progressStep, styles.progressStepActive]}
+                />
+                <View style={styles.progressStep} />
+              </View>
+              <TextComponent
+                type={TextType.textSmallRegular}
+                style={styles.progressText}
+              >
+                Etapa 2 de 3
+              </TextComponent>
+            </View>
+
+            <View style={styles.form}>
+              <CEPInput
+                value={formData.cep}
+                onChangeText={handleCEPChange}
+                streetNumber={formData.number}
+                onAddressFound={(address: ViaCEPAddress) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    street: address.street,
+                    neighborhood: address.neighborhood,
+                    city: address.city,
+                  }));
+
+                  console.log(
+                    "✅ Endereço encontrado no ViaCEP (GRATUITO):",
+                    address
+                  );
+                }}
+                error={errors.cep}
+              />
+
+              <FormInput
+                label="Rua"
+                placeholder="Digite o nome da rua"
+                value={formData.street}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, street: text })
+                }
+                error={errors.street}
+              />
+
+              <FormInput
+                label="Número"
+                placeholder="Digite o número"
+                value={formData.number}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, number: text })
+                }
+                keyboardType="numeric"
+                error={errors.number}
+              />
+
+              <FormInput
+                label="Bairro"
+                placeholder="Digite o bairro"
+                value={formData.neighborhood}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, neighborhood: text })
+                }
+                error={errors.neighborhood}
+              />
+
+              <FormInput
+                label="Cidade"
+                placeholder="Digite a cidade"
+                value={formData.city}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, city: text })
+                }
+              />
+
+              <FormInput
+                label="Complemento"
+                placeholder="Apartamento, casa, etc. (opcional)"
+                value={formData.complement}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, complement: text })
+                }
+              />
+            </View>
+
+            <View style={{ height: 120 }} />
+          </ScrollView>
+
+          {/* Botões na parte inferior */}
+          <View style={[styles.fixedButtonContainer, { backgroundColor }]}>
+            <View style={styles.buttonContainer}>
+              <Pressable
+                style={[
+                  styles.backButtonAction,
+                  { borderColor: textColor + "30" },
+                ]}
+                onPress={handleBack}
+              >
+                <MaterialIcons name="arrow-back" size={20} color={textColor} />
+                <TextComponent type={TextType.textMediumSemiBold}>
+                  Voltar
+                </TextComponent>
+              </Pressable>
+
+              <Pressable
+                style={[
+                  styles.nextButton,
+                  {
+                    backgroundColor: isFormValid()
+                      ? textColor
+                      : textColor + "50",
+                    opacity: isFormValid() ? 1 : 0.6,
+                  },
+                ]}
+                onPress={handleNext}
+                disabled={loading || !isFormValid()}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <TextComponent
+                      type={TextType.textMediumSemiBold}
+                      darkColor="#fff"
+                      lightColor="#fff"
+                    >
+                      Continuar
+                    </TextComponent>
+                    <MaterialIcons
+                      name="arrow-forward"
+                      size={20}
+                      color="#fff"
+                    />
+                  </>
+                )}
+              </Pressable>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -390,18 +378,17 @@ const styles = StyleSheet.create({
   keyboardAvoidingView: {
     flex: 1,
   },
+  content: {
+    flex: 1,
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 120, // Espaço para os botões fixos
+    paddingBottom: 20,
   },
   fixedButtonContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 20,
@@ -415,7 +402,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
-    zIndex: 10,
   },
   header: {
     flexDirection: "row",
@@ -459,22 +445,6 @@ const styles = StyleSheet.create({
   form: {
     paddingHorizontal: 16,
     gap: 16,
-  },
-  locationSection: {
-    marginTop: 8,
-  },
-  locationLabel: {
-    marginBottom: 12,
-  },
-  locationButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 8,
   },
   buttonContainer: {
     flexDirection: "row",

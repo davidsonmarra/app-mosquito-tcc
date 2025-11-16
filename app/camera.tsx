@@ -180,10 +180,10 @@ export default function CameraScreen() {
       // Adicionar outros campos
       formData.append("userId", userId.toString());
 
-      // Adicionar campaignId (0 se não existir)
+      // Adicionar campaignId (null se não existir)
       formData.append(
         "campaignId",
-        campaignIdNum ? campaignIdNum.toString() : "0"
+        campaignIdNum ? campaignIdNum.toString() : "null"
       );
 
       formData.append("type", photoType);

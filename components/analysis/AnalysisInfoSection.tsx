@@ -97,7 +97,11 @@ export default function AnalysisInfoSection({
               Localização
             </Text>
             <Text style={[styles.infoValue, { color: textColor }]}>
-              {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+              {location.latitude !== 0 && location.longitude !== 0
+                ? `${location.latitude.toFixed(
+                    6
+                  )}, ${location.longitude.toFixed(6)}`
+                : "Não disponível"}
             </Text>
           </View>
         </View>

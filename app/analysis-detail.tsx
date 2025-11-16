@@ -29,7 +29,7 @@ interface ResultApiResponse {
   type: string;
   status: string;
   feedback: {
-    like: boolean;
+    like: boolean | null;
     comment: string | null;
   };
   id: number;
@@ -38,6 +38,10 @@ interface ResultApiResponse {
   processed_at: string | null;
   object_count: number | null;
   userId: number;
+  coordinates?: {
+    lat: string;
+    lng: string;
+  };
 }
 
 export default function AnalysisDetailScreen() {
@@ -92,6 +96,14 @@ export default function AnalysisDetailScreen() {
       // Converter data ISO para timestamp
       const created_at = new Date(resultData.created_at).getTime();
 
+      // Mapear coordenadas (vem como strings na API)
+      let latitude = 0;
+      let longitude = 0;
+      if (resultData.coordinates) {
+        latitude = parseFloat(resultData.coordinates.lat) || 0;
+        longitude = parseFloat(resultData.coordinates.lng) || 0;
+      }
+
       // Mapear para AnalysisDetail
       const analysisData: AnalysisDetail = {
         id: resultData.id,
@@ -112,8 +124,8 @@ export default function AnalysisDetailScreen() {
         campaignTitle: campaignTitle,
         detectedBreedingSites: resultData.object_count || 0,
         location: {
-          latitude: 0,
-          longitude: 0,
+          latitude: latitude,
+          longitude: longitude,
         },
       };
 
@@ -134,6 +146,25 @@ export default function AnalysisDetailScreen() {
   const handleRefresh = () => {
     setRefreshing(true);
     loadAnalysisDetail();
+  };
+
+  const handleFeedbackChange = async (like: boolean, comment: string) => {
+    // Atualizar o estado local imediatamente para feedback visual
+    if (analysis) {
+      setAnalysis({
+        ...analysis,
+        feedback: {
+          like: like,
+          comment: comment || null,
+        },
+      });
+    }
+
+    // Recarregar dados da API para garantir sincronização após um pequeno delay
+    // para dar tempo da API processar a atualização
+    setTimeout(async () => {
+      await loadAnalysisDetail();
+    }, 800);
   };
 
   if (loading) {
@@ -207,6 +238,7 @@ export default function AnalysisDetailScreen() {
         <AnalysisFeedbackSection
           feedback={analysis.feedback}
           analysisId={analysis.id}
+          onFeedbackChange={handleFeedbackChange}
         />
 
         {/* Espaço inferior */}

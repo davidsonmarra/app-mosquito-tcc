@@ -88,7 +88,7 @@ export default function CampaignList({
         renderItem={renderCampaign}
         keyExtractor={(item) => item.id.toString()}
         ListHeaderComponent={renderHeader}
-        ListEmptyComponent={renderEmptyState}
+        ListEmptyComponent={campaigns.length === 0 ? renderEmptyState : null}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
         refreshControl={
