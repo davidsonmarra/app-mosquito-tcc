@@ -4,7 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -30,7 +30,7 @@ interface UploadResponse {
 }
 
 export default function CameraScreen() {
-  const { campaignId, type } = useLocalSearchParams();
+  const { campaignId, type, photoUri } = useLocalSearchParams();
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -41,7 +41,17 @@ export default function CameraScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
 
-  if (!permission?.granted) {
+  // Se photoUri foi passado via parâmetros (vindo da galeria), setar diretamente
+  useEffect(() => {
+    if (photoUri && typeof photoUri === "string") {
+      const timestamp = new Date().getTime();
+      const photoUriWithTimestamp = `${photoUri}?timestamp=${timestamp}`;
+      setPhoto(photoUriWithTimestamp);
+    }
+  }, [photoUri]);
+
+  // Se já temos uma foto (vinda da galeria), não precisa de permissão de câmera
+  if (!photo && !permission?.granted) {
     return (
       <View style={[styles.container, { backgroundColor }]}>
         <TextComponent type={TextType.textMediumRegular}>
@@ -98,6 +108,10 @@ export default function CameraScreen() {
   const handleRetakePhoto = () => {
     setPhoto(null);
     setSelectedType((type as "terreno" | "propriedade") || null);
+    // Se veio da galeria, voltar para a tela anterior
+    if (photoUri) {
+      router.back();
+    }
   };
 
   const getCurrentLocation = async (): Promise<{
@@ -355,7 +369,7 @@ export default function CameraScreen() {
               type={TextType.textSmallRegular}
               style={styles.buttonText}
             >
-              Tirar novamente
+              {photoUri ? "Selecionar outra" : "Tirar novamente"}
             </TextComponent>
           </Pressable>
           <Pressable

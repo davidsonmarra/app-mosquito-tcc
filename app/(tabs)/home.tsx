@@ -4,9 +4,10 @@ import { FloatingActionButton } from "@/components/ui";
 import { useCampaigns } from "@/hooks/useCampaigns";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import React from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
@@ -16,6 +17,42 @@ export default function HomeScreen() {
 
   const handleTakePhoto = () => {
     router.push("/camera");
+  };
+
+  const handleSelectFromGallery = async () => {
+    try {
+      // Solicitar permissão de acesso à galeria
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== "granted") {
+        Alert.alert(
+          "Permissão necessária",
+          "É necessário permitir o acesso à galeria para selecionar fotos."
+        );
+        return;
+      }
+
+      // Abrir seletor de imagens
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: false,
+        quality: 0.5,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const photoUri = result.assets[0].uri;
+        // Navegar para a tela de câmera com a URI da imagem selecionada
+        router.push({
+          pathname: "/camera" as any,
+          params: {
+            photoUri: photoUri,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao selecionar imagem da galeria:", error);
+      Alert.alert("Erro", "Não foi possível selecionar a imagem. Tente novamente.");
+    }
   };
 
   if (loading) {
@@ -73,6 +110,11 @@ export default function HomeScreen() {
         refreshing={loading}
       />
 
+      <FloatingActionButton
+        onPress={handleSelectFromGallery}
+        icon="photo-library"
+        style={styles.uploadFab}
+      />
       <FloatingActionButton onPress={handleTakePhoto} />
     </SafeAreaView>
   );
@@ -105,5 +147,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
+  },
+  uploadFab: {
+    position: "absolute",
+    bottom: 88, // 56px do botão + 12px de gap + 20px da borda
+    right: 20,
   },
 });

@@ -5,7 +5,7 @@ import { useThemeColor } from "../../hooks/useThemeColor";
 
 interface AnalysisInfoSectionProps {
   analysisId: number;
-  campaignTitle: string;
+  campaignTitle: string | null;
   detectedBreedingSites: number;
   location: {
     latitude: number;
@@ -80,11 +80,14 @@ export default function AnalysisInfoSection({
           <MaterialIcons name="bug-report" size={20} color={tintColor} />
           <View style={styles.infoContent}>
             <Text style={[styles.infoLabel, { color: textColor }]}>
-              Criadouros Detectados
+              Potenciais Criadouros
             </Text>
             <Text style={[styles.infoValue, { color: textColor }]}>
-              {detectedBreedingSites} foco
-              {detectedBreedingSites !== 1 ? "s" : ""}
+              {detectedBreedingSites === 0
+                ? "Nenhuma detecção"
+                : detectedBreedingSites === 1
+                ? "1 detecção"
+                : `${detectedBreedingSites} detecções`}
             </Text>
           </View>
         </View>
@@ -114,7 +117,7 @@ export default function AnalysisInfoSection({
               Campanha
             </Text>
             <Text style={[styles.infoValue, { color: textColor }]}>
-              {campaignTitle}
+              {campaignTitle || "Não vinculada"}
             </Text>
           </View>
         </View>

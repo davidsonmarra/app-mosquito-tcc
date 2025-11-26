@@ -35,7 +35,7 @@ export interface CampaignDetailResponse {
 
 export interface AnalysisDetail extends CampaignResult {
   campaignId: number;
-  campaignTitle: string;
+  campaignTitle: string | null;
   detectedBreedingSites: number;
   location: {
     latitude: number;

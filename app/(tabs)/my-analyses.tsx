@@ -12,14 +12,12 @@ export default function MyAnalysesScreen() {
   const { analyses, loading, refreshing, error, refreshAnalyses } =
     useUserAnalyses();
 
-  // Atualizar quando a tela voltar ao foco (ex: após enviar foto ou voltar de outra tela)
+  // Atualizar SEMPRE quando a tela entrar em foco
   useFocusEffect(
     useCallback(() => {
-      // Recarregar dados quando a tela voltar ao foco
-      // Usar refreshing ao invés de loading para não mostrar tela de loading
-      if (analyses.length > 0 || !loading) {
-        refreshAnalyses();
-      }
+      // Sempre recarregar dados quando a tela entrar em foco
+      // Usar refreshing ao invés de loading para não mostrar tela de loading completa
+      refreshAnalyses();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
   );

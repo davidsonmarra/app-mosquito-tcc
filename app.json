@@ -4,23 +4,37 @@
     "slug": "mosquito-camera",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/ic_launcher_google_play.png",
     "scheme": "mosquitocamera",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Precisamos de acesso à câmera para tirar fotos de possíveis focos do mosquito da dengue."
-      }
+        "NSCameraUsageDescription": "Precisamos de acesso à câmera para tirar fotos de possíveis focos do mosquito da dengue.",
+        "NSPhotoLibraryUsageDescription": "Precisamos de acesso à galeria para selecionar fotos de possíveis focos do mosquito da dengue.",
+        "NSLocationWhenInUseUsageDescription": "Precisamos de acesso à localização para registrar onde a foto foi tirada.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      },
+      "bundleIdentifier": "com.anonymous.mosquitocamera"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/ic_launcher_google_play.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "permissions": ["android.permission.CAMERA"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES"
+      ],
+      "package": "com.anonymous.mosquitocamera"
     },
     "web": {
       "bundler": "metro",
@@ -29,10 +43,11 @@
     },
     "plugins": [
       "expo-router",
+      "expo-dev-client",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/ic_launcher_google_play.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -43,7 +58,15 @@
         {
           "cameraPermission": "Precisamos de acesso à câmera para tirar fotos de possíveis focos do mosquito da dengue."
         }
-      ]
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Precisamos de acesso à galeria para selecionar fotos de possíveis focos do mosquito da dengue."
+        }
+      ],
+      "expo-web-browser",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

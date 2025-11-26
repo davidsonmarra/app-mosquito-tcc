@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -47,15 +48,15 @@ export default function CampaignDetailScreen() {
     loadCampaignDetail();
   }, [campaignId]);
 
-  // Atualizar quando a tela voltar ao foco (ex: após voltar da câmera)
+  // Atualizar quando a tela voltar ao foco (ex: após voltar da câmera ou detalhes da análise)
   useFocusEffect(
     useCallback(() => {
       // Recarregar dados quando a tela voltar ao foco
       // Usar refreshing ao invés de loading para não mostrar tela de loading
-      if (campaign) {
+      if (campaign || !loading) {
         setRefreshing(true);
+        loadCampaignDetail();
       }
-      loadCampaignDetail();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [campaignId])
   );
@@ -80,6 +81,50 @@ export default function CampaignDetailScreen() {
         type: "terreno", // Tipo padrão, pode ser ajustado conforme necessário
       },
     });
+  };
+
+  const handleSelectFromGallery = async () => {
+    try {
+      // Solicitar permissão de acesso à galeria
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Permissão necessária",
+          "É necessário permitir o acesso à galeria para selecionar fotos."
+        );
+        return;
+      }
+
+      // Abrir seletor de imagens
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: false,
+        quality: 0.5,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const photoUri = result.assets[0].uri;
+        const campaignIdNum = Number(campaignId);
+
+        // Navegar para a tela de câmera com a URI da imagem selecionada e o ID da campanha
+        router.push({
+          pathname: "/camera" as any,
+          params: {
+            photoUri: photoUri,
+            campaignId: campaignIdNum.toString(),
+            type: "terreno",
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao selecionar imagem da galeria:", error);
+      Alert.alert(
+        "Erro",
+        "Não foi possível selecionar a imagem. Tente novamente."
+      );
+    }
   };
 
   const handleResultPress = (resultId: number) => {
@@ -202,7 +247,12 @@ export default function CampaignDetailScreen() {
         <View style={styles.fabSpacer} />
       </ScrollView>
 
-      {/* Floating Action Button */}
+      {/* Floating Action Buttons */}
+      <FloatingActionButton
+        onPress={handleSelectFromGallery}
+        icon="photo-library"
+        style={styles.uploadFab}
+      />
       <FloatingActionButton
         onPress={handleTakePhoto}
         icon="camera-alt"
@@ -305,6 +355,11 @@ const styles = StyleSheet.create({
   },
   fabSpacer: {
     height: 100,
+  },
+  uploadFab: {
+    position: "absolute",
+    bottom: 88, // 56px do botão + 12px de gap + 20px da borda
+    right: 20,
   },
   fab: {
     position: "absolute",

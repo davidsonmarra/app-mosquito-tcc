@@ -10,6 +10,7 @@ import {
   Image,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   View,
 } from "react-native";
@@ -208,7 +209,13 @@ const AnalysisList: React.FC<AnalysisListProps> = ({
 
   if (analyses.length === 0) {
     return (
-      <View style={[styles.emptyContainer, { backgroundColor }]}>
+      <ScrollView
+        style={[styles.list, { backgroundColor }]}
+        contentContainerStyle={styles.emptyContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <MaterialIcons name="analytics" size={64} color="#9E9E9E" />
         <TextComponent
           type={TextType.headingMedium}
@@ -222,7 +229,7 @@ const AnalysisList: React.FC<AnalysisListProps> = ({
         >
           Suas análises aparecerão aqui quando você tirar fotos
         </TextComponent>
-      </View>
+      </ScrollView>
     );
   }
 
@@ -259,10 +266,11 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   emptyContainer: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 32,
+    minHeight: "100%",
   },
   emptyTitle: {
     marginTop: 16,

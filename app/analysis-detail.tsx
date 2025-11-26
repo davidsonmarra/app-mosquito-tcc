@@ -53,6 +53,38 @@ export default function AnalysisDetailScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
 
+  const updateResultStatus = async (resultId: number) => {
+    try {
+      const headers = await AuthService.getAuthHeaders();
+      const response = await fetch(
+        `${API_BASE_URL}/results/updateResultStatus`,
+        {
+          method: "PUT",
+          headers: {
+            ...headers,
+            accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: resultId,
+            status: "visualized",
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Erro ao atualizar status:", errorText);
+        throw new Error(
+          `Erro ao atualizar status: ${response.status} ${response.statusText}`
+        );
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar status da análise:", error);
+      // Não mostrar alerta para o usuário, apenas logar o erro
+    }
+  };
+
   const loadAnalysisDetail = async () => {
     try {
       const headers = await AuthService.getAuthHeaders();
@@ -80,8 +112,15 @@ export default function AnalysisDetailScreen() {
 
       const resultData: ResultApiResponse = await response.json();
 
+      // Se a análise estiver concluída (finished), atualizar para visualizada
+      if (resultData.status === "finished") {
+        await updateResultStatus(resultId);
+        // Atualizar o status localmente
+        resultData.status = "visualized";
+      }
+
       // Buscar título da campanha se tiver campaignId
-      let campaignTitle = "Campanha";
+      let campaignTitle: string | null = null;
       if (resultData.campaignId) {
         try {
           const campaign = await CampaignService.getCampaign(

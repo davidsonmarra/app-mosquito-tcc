@@ -1,5 +1,6 @@
-import React from "react";
-import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import React, { useState, useMemo } from "react";
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import ImageViewing from "react-native-image-viewing";
 import { useThemeColor } from "../../hooks/useThemeColor";
 
 interface AnalysisImageSectionProps {
@@ -18,6 +19,32 @@ export default function AnalysisImageSection({
 }: AnalysisImageSectionProps) {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  
+  // Estados para controlar o visualizador de imagens
+  const [visible, setVisible] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
+  
+  // Preparar array de imagens para o visualizador
+  const images = useMemo(() => {
+    const imageArray = [{ uri: originalImage }];
+    if (resultImage) {
+      imageArray.push({ uri: resultImage });
+    }
+    return imageArray;
+  }, [originalImage, resultImage]);
+  
+  // Handlers para abrir o visualizador
+  const handleOpenOriginal = () => {
+    setImageIndex(0);
+    setVisible(true);
+  };
+  
+  const handleOpenResult = () => {
+    if (resultImage) {
+      setImageIndex(1);
+      setVisible(true);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -61,7 +88,9 @@ export default function AnalysisImageSection({
           <Text style={[styles.imageLabel, { color: textColor }]}>
             Imagem Original
           </Text>
-          <Image source={{ uri: originalImage }} style={styles.image} />
+          <TouchableOpacity onPress={handleOpenOriginal} activeOpacity={0.8}>
+            <Image source={{ uri: originalImage }} style={styles.image} />
+          </TouchableOpacity>
         </View>
 
         {/* Imagem Processada */}
@@ -70,7 +99,9 @@ export default function AnalysisImageSection({
             Imagem Analisada
           </Text>
           {resultImage ? (
-            <Image source={{ uri: resultImage }} style={styles.image} />
+            <TouchableOpacity onPress={handleOpenResult} activeOpacity={0.8}>
+              <Image source={{ uri: resultImage }} style={styles.image} />
+            </TouchableOpacity>
           ) : (
             <View style={[styles.image, styles.placeholderImage]}>
               <Text style={[styles.placeholderText, { color: textColor }]}>
@@ -80,6 +111,14 @@ export default function AnalysisImageSection({
           )}
         </View>
       </View>
+      
+      {/* Visualizador de Imagens Full Screen */}
+      <ImageViewing
+        images={images}
+        imageIndex={imageIndex}
+        visible={visible}
+        onRequestClose={() => setVisible(false)}
+      />
 
       {/* Status */}
       <View style={styles.statusContainer}>
